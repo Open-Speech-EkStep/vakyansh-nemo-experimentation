@@ -11,3 +11,6 @@
 07/05/2022:
 * Training on Hindi Small Conformer to continue. Valid WER touched 0.3 in epoch 4 after 200k steps.
 * Will train till 400k steps.
+
+08/05/2022:
+* Stopped Small Hindi Nemo Conformer CTC training as validation loss/wer didn't improve after 400k iterations.
