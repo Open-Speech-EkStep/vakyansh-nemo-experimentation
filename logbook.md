@@ -14,3 +14,7 @@
 
 08/05/2022:
 * Stopped Small Hindi Nemo Conformer CTC training as validation loss/wer didn't improve after 400k iterations.
+* Started training transducer based conformer small, BPE. It took 9 attempts to start the training.
+
+09/05/2022:
+* Looks like the Transducer based training doesn't likes noisy data and only high quality data should be used for this training. Why? Because even training loss in not decreasing. (2 things here) Try to improve data, or reduce regularization.
