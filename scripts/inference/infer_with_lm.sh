@@ -1,1 +1,13 @@
-nohup inferpython eval_beamsearch_ngram.py --nemo_model_file ../evaluations/hindi_medium_hi/Conformer-CTC-BPE.nemo --input_manifest ~/evaluations/tarini_manifest.json --kenlm_model_file text/ai4b.bin --beam_width 128 --beam_alpha 0 0.5 1.0 1.5 2.0 --beam_beta 0 0.5 1.0 1.5 2.0 &
+model_path='/home/harveen/vakyansh-nemo-experimentation/scripts/finetuning/nemo_experiments/Conformer-CTC-BPE-Small/2022-05-06_09-10-05/checkpoints/averaging/Conformer-CTC-BPE-Small-averaged.nemo'
+dataset_manifest='../../data/tarini_manifest.json'
+output_filename='../../results/hi_small_tarini'
+kenlm_model='/home/harveen/vakyansh-nemo-experimentation/lm/ai4b.bin'
+alpha=1.0
+beta=1.0
+beam=128
+
+python ../../src/inference/eval_beamsearch_ngram.py --nemo_model_file ${model_path} \
+       	--input_manifest ${dataset_manifest} \
+       	--kenlm_model_file ${kenlm_model} --beam_width ${beam} \
+	--beam_alpha ${alpha} \
+	--beam_beta ${beta}

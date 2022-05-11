@@ -32,7 +32,7 @@ python <NEMO_ROOT>/scripts/tokenizers/process_asr_text_tokenizer.py \
 
 # Training the model
 ```sh
-python speech_to_text_ctc_bpe.py \
+python speech_to_text_rnnt_bpe.py \
     # (Optional: --config-path=<path to dir of configs> --config-name=<name of config without .yaml>) \
     model.train_ds.manifest_filepath=<path to train manifest> \
     model.validation_ds.manifest_filepath=<path to val/test manifest> \
@@ -57,29 +57,24 @@ python speech_to_text_ctc_bpe.py \
 For documentation on fine-tuning this model, please visit -
 https://docs.nvidia.com/deeplearning/nemo/user-guide/docs/en/main/asr/configs.html#fine-tuning-configurations
 
-# Pretrained Models
-
-For documentation on existing pretrained models, please visit -
-https://docs.nvidia.com/deeplearning/nemo/user-guide/docs/en/main/asr/results.html
-
 """
 
 import pytorch_lightning as pl
 from omegaconf import OmegaConf
 
-from nemo.collections.asr.models.ctc_bpe_models import EncDecCTCModelBPE
+from nemo.collections.asr.models import EncDecRNNTBPEModel
 from nemo.core.config import hydra_runner
 from nemo.utils import logging
 from nemo.utils.exp_manager import exp_manager
 
-'''
-@hydra_runner(config_path="../conf/citrinet/", config_name="config_bpe")
+
+@hydra_runner(config_path="experimental/contextnet_rnnt", config_name="config_rnnt_bpe")
 def main(cfg):
     logging.info(f'Hydra config: {OmegaConf.to_yaml(cfg)}')
 
     trainer = pl.Trainer(**cfg.trainer)
     exp_manager(trainer, cfg.get("exp_manager", None))
-    asr_model = EncDecCTCModelBPE(cfg=cfg.model, trainer=trainer)
+    asr_model = EncDecRNNTBPEModel(cfg=cfg.model, trainer=trainer)
 
     # Initialize the weights of the model from another model, if provided via config
     asr_model.maybe_init_from_pretrained_checkpoint(cfg)
@@ -89,29 +84,7 @@ def main(cfg):
     if hasattr(cfg.model, 'test_ds') and cfg.model.test_ds.manifest_filepath is not None:
         if asr_model.prepare_test(trainer):
             trainer.test(asr_model)
-'''
 
-@hydra_runner(config_path="../conf/citrinet/", config_name="config_bpe")
-def main(cfg):
-    
-    logging.info(f'Hydra config: {OmegaConf.to_yaml(cfg)}')
-
-    trainer = pl.Trainer(**cfg.trainer)
-    exp_manager(trainer, cfg.get("exp_manager", None))
-    asr_model = EncDecCTCModelBPE(cfg=cfg.model, trainer=trainer)
-
-    # Initialize the weights of the model from another model, if provided via config
-    #asr_model.maybe_init_from_pretrained_checkpoint(cfg)
-    print(cfg.init_from_pretrained_model)
-    pretrained_model = EncDecCTCModelBPE.restore_from(cfg.init_from_pretrained_model)
-    print(pl.utilities.model_summary.summarize(pretrained_model))
-    asr_model.encoder.load_state_dict(pretrained_model.encoder.state_dict(), strict=True)
-    asr_model.decoder.load_state_dict(pretrained_model.decoder.state_dict(), strict=True)
-    trainer.fit(asr_model)
-
-    if hasattr(cfg.model, 'test_ds') and cfg.model.test_ds.manifest_filepath is not None:
-        if asr_model.prepare_test(trainer):
-            trainer.test(asr_model)
 
 if __name__ == '__main__':
-    main()
+    main()  # noqa pylint: disable=no-value-for-parameter
