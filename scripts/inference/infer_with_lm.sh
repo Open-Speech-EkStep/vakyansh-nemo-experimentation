@@ -1,6 +1,6 @@
-model_path='/home/harveen/vakyansh-nemo-experimentation/scripts/finetuning/nemo_experiments/Conformer-CTC-BPE-Small/2022-05-06_09-10-05/checkpoints/averaging/Conformer-CTC-BPE-Small-averaged.nemo'
+model_path='/home/harveen/evaluations/hindi_medium_ls/Conformer-CTC-BPE.nemo'
 dataset_manifest='../../data/tarini_manifest.json'
-output_filename='../../results/hi_small_tarini'
+output_filename='../../results/test'
 kenlm_model='/home/harveen/vakyansh-nemo-experimentation/lm/ai4b.bin'
 alpha=1.0
 beta=1.0

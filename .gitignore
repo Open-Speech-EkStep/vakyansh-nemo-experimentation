@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+checkpoints/
+scripts/finetuning/nemo_experiments
+scripts/finetuning/*.out
+results/
+data/
+lm/
