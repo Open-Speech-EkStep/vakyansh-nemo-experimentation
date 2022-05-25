@@ -1,6 +1,6 @@
 
 model_path='/home/harveen/vakyansh-nemo-experimentation/scripts/finetuning/nemo_experiments/Conformer-Transducer-Char/2022-05-13_22-13-02/checkpoints/Conformer-Transducer-Char.nemo'
-dataset_manifest='../../data/tarini_manifest.json'
+dataset_manifest='../../data/vakyansh_team_manifest.json'
 output_filename='../../results/hi_small_tarini_rnnt_char'
 
 

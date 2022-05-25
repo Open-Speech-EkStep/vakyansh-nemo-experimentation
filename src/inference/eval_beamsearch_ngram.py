@@ -52,6 +52,16 @@ from tqdm.auto import tqdm
 import nemo
 import nemo.collections.asr as nemo_asr
 from nemo.utils import logging
+from indicnlp.tokenize.indic_tokenize import trivial_tokenize
+from indicnlp.normalize.indic_normalize import IndicNormalizerFactory
+
+lang = 'hi'
+normalizer = IndicNormalizerFactory().get_normalizer(lang)
+
+def normalize_text(sent):
+    normalized = normalizer.normalize(sent)
+    processed = ' '.join(trivial_tokenize(normalized, lang))
+    return processed
 
 
 def beam_search_eval(
@@ -113,6 +123,7 @@ def beam_search_eval(
                     pred_text = ids_to_text_func([ord(c) - TOKEN_OFFSET for c in candidate[1]])
                 else:
                     pred_text = candidate[1]
+                pred_text = normalize_text(pred_text)
                 pred_split_w = pred_text.split()
                 wer_dist = editdistance.eval(target_split_w, pred_split_w)
                 pred_split_c = list(pred_text)
@@ -234,7 +245,7 @@ def main():
         audio_file_paths = []
         for line in tqdm(manifest_file, desc=f"Reading Manifest {args.input_manifest} ...", ncols=120):
             data = json.loads(line)
-            target_transcripts.append(data['text'])
+            target_transcripts.append(normalize_text(data['text']))
             audio_file_paths.append(data['audio_filepath'])
 
     if args.probs_cache_file and os.path.exists(args.probs_cache_file):

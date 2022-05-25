@@ -68,6 +68,16 @@ from omegaconf import MISSING, OmegaConf, open_dict
 from nemo.collections.asr.metrics.wer import word_error_rate
 from nemo.core.config import hydra_runner
 from nemo.utils import logging
+from indicnlp.tokenize.indic_tokenize import trivial_tokenize
+from indicnlp.normalize.indic_normalize import IndicNormalizerFactory
+
+lang = 'hi'
+normalizer = IndicNormalizerFactory().get_normalizer(lang)
+
+def normalize_text(sent):
+    normalized = normalizer.normalize(sent)
+    processed = ' '.join(trivial_tokenize(normalized, lang))
+    return processed
 
 
 @dataclass
@@ -134,7 +144,13 @@ def main(cfg: EvaluationConfig):
 
     # Compute the WER
     metric_name = 'CER' if cfg.use_cer else 'WER'
+    predicted_text = [normalize_text(txt) for txt in predicted_text]
+    ground_truth_text = [normalize_text(txt) for txt in ground_truth_text]
+
     metric_value = word_error_rate(hypotheses=predicted_text, references=ground_truth_text, use_cer=cfg.use_cer)
+    metric_value_cer = word_error_rate(hypotheses=predicted_text, references=ground_truth_text, use_cer=True)
+
+    print(f"CER: {metric_value_cer}")
 
     if cfg.tolerance is not None:
         if metric_value > cfg.tolerance:
@@ -150,6 +166,8 @@ def main(cfg: EvaluationConfig):
         cfg.metric_value = metric_value
 
     return cfg
+
+
 
 
 if __name__ == '__main__':

@@ -1,0 +1,4 @@
+tokenizer,tokens,model_path,model_name,model_type,dataset_manifest_path,dataset,wer,cer,wer_lm,cer_lm,beam,alpha,beta
+SentencePieceTokenizer,128,,,,,,,,,,,,
+SentencePieceTokenizer,128,/home/harveen/vakyansh-nemo-experimentation/scripts/finetuning/nemo_experiments/Conformer-CTC-BPE-Small/2022-05-06_09-10-05/checkpoints/averaging/Conformer-CTC-BPE-Small-averaged.nemo,Conformer-CTC-BPE-Small-averaged.nemo,EncDecCTCModelBPE,/home/harveen/vakyansh-nemo-experimentation/data/mucs_hi_eval_manifest.json,mucs_hi_eval, 16.93%,5.66%, 13.10%,4.57%,128,1.0,1.0
+SentencePieceTokenizer,128,/home/harveen/vakyansh-nemo-experimentation/scripts/finetuning/nemo_experiments/Conformer-CTC-BPE-Small/2022-05-06_09-10-05/checkpoints/averaging/Conformer-CTC-BPE-Small-averaged.nemo,Conformer-CTC-BPE-Small-averaged.nemo,EncDecCTCModelBPE,/home/harveen/vakyansh-nemo-experimentation/data/mucs_hi_dev_manifest.json,mucs_hi_dev, 21.12%,6.92%, 17.09%,5.66%,128,1.0,1.0

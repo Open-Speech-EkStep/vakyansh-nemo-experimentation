@@ -5,8 +5,8 @@ valid_manifest_path=/home/harveen/vakyansh-nemo-experimentation/data/hindi/valid
 tokenizer_dir=/home/harveen/vakyansh-nemo-experimentation/data/hindi/tokenizer_spe_unigram_v1024
 tokenizer_type=char
 wandb_project_name=nemo_conformer
-wandb_run_name=conformer_small_hindi_ls_rnnt_char
-pretrained_model=stt_en_conformer_transducer_small
+wandb_run_name=conformer_small_hindi_ls_rnnt_char_restored_from_ctc
+pretrained_model='/home/harveen/vakyansh-nemo-experimentation/scripts/finetuning/nemo_experiments/Conformer-CTC-BPE-Small/2022-05-06_09-10-05/checkpoints/averaging/Conformer-CTC-BPE-Small-averaged.nemo'
 
 
 if  [[ ${tokenizer_type}=char ]]; then
@@ -23,7 +23,7 @@ python ../../src/finetuning/speech_to_text_rnnt.py \
     exp_manager.create_wandb_logger=True \
     exp_manager.wandb_logger_kwargs.name=${wandb_run_name} \
     exp_manager.wandb_logger_kwargs.project=${wandb_project_name} \
-    #+init_from_pretrained_model=${pretrained_model}
+    +init_from_pretrained_model=${pretrained_model}
 
 
 fi

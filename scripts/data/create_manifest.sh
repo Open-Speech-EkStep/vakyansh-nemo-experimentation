@@ -1,5 +1,5 @@
-folder=''
-name=''
+folder='/home/harveen/benchmark/mucs/hindi_dev/mucs_hi_dev'
+name='../../data/mucs_hi_dev'
 
 
-python ../src/create_manifest.py ${folder} ${name}
+python ../../src/data/create_manifest.py ${folder} ${name}
