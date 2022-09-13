@@ -20,7 +20,7 @@
 # Pre-trained models of Conformer-Transducer can be found here: https://docs.nvidia.com/deeplearning/nemo/user-guide/docs/en/stable/asr/results.html
 # The checkpoint of the large model trained on NeMo ASRSET with this recipe can be found here: https://ngc.nvidia.com/catalog/models/nvidia:nemo:stt_en_conformer_transducer_large
 
-name: "Conformer-Transducer-Char"
+name: "Hindi-Conformer-Transducer-Char"
 
 model:
   sample_rate: &sample_rate 16000
@@ -92,21 +92,22 @@ model:
  "ः",
  "ङ"]
 
+
   model_defaults:
     enc_hidden: ${model.encoder.d_model}
-    pred_hidden: 320
-    joint_hidden: 320
+    pred_hidden: 640
+    joint_hidden: 640
 
   train_ds:
     manifest_filepath: ???
     sample_rate: ${model.sample_rate}
-    batch_size: 20 # you may increase batch_size if your memory allows
+    batch_size: 16 # you may increase batch_size if your memory allows
     shuffle: true
     num_workers: 8
     pin_memory: true
     trim_silence: false
     max_duration: 30 # it is set for LibriSpeech, you may need to update it for your dataset
-    min_duration: 0.2
+    min_duration: 0.1
     # tarred datasets
     is_tarred: false
     tarred_audio_filepaths: null
@@ -147,7 +148,7 @@ model:
   spec_augment:
     _target_: nemo.collections.asr.modules.SpectrogramAugmentation
     freq_masks: 2 # set to zero to disable it
-    time_masks: 2 # set to zero to disable it
+    time_masks: 5 # set to zero to disable it
     freq_width: 27
     time_width: 0.05
 
@@ -155,8 +156,8 @@ model:
     _target_: nemo.collections.asr.modules.ConformerEncoder
     feat_in: ${model.preprocessor.features}
     feat_out: -1 # you may set it if you need different output size other than the default d_model
-    n_layers: 16
-    d_model: 176
+    n_layers: 18
+    d_model: 256
 
     # Sub-sampling params
     subsampling: striding # vggnet or striding
@@ -251,7 +252,7 @@ model:
     lr: 5.0
     # optimizer arguments
     betas: [0.9, 0.98]
-    weight_decay: 0.0
+    weight_decay: 1e-3
 
     # scheduler setup
     sched:
@@ -273,7 +274,7 @@ trainer:
   accumulate_grad_batches: 1
   gradient_clip_val: 0.0
   precision: 32 # Should be set to 16 for O1 and O2 to enable the AMP.
-  log_every_n_steps: 100  # Interval of logging.
+  log_every_n_steps: 10  # Interval of logging.
   progress_bar_refresh_rate: 10
   resume_from_checkpoint: null # The path to a checkpoint file to continue the training, restores the whole state including the epoch, step, LR schedulers, apex, etc.
   num_sanity_val_steps: 0 # number of steps to perform validation steps for sanity check the validation process before starting the training, setting to 0 disables it
@@ -281,6 +282,7 @@ trainer:
   sync_batchnorm: true
   enable_checkpointing: False  # Provided by exp_manager
   logger: false  # Provided by exp_manager
+  benchmark: false # needs to be false for models with variable-length speech input as it slows down training
 
 
 exp_manager:

@@ -134,3 +134,4 @@ scripts/finetuning/*.out
 results/
 data/
 lm/
+*.out

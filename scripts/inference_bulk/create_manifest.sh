@@ -1,4 +1,4 @@
-folder='/home/harveen/evaluations/benchmark_hindi/hindi/'$1
+folder='/root/Data/hindi_bench/'$1
 name='../../data/'$1
 
 

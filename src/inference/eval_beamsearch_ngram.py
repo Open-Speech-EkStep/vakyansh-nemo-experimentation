@@ -55,7 +55,7 @@ from nemo.utils import logging
 from indicnlp.tokenize.indic_tokenize import trivial_tokenize
 from indicnlp.normalize.indic_normalize import IndicNormalizerFactory
 
-lang = 'hi'
+lang = 'ta'
 normalizer = IndicNormalizerFactory().get_normalizer(lang)
 
 def normalize_text(sent):
@@ -189,7 +189,7 @@ def main():
         "--probs_cache_file", default=None, type=str, help="The cache file for storing the outputs of the model"
     )
     parser.add_argument(
-        "--acoustic_batch_size", default=16, type=int, help="The batch size to calculate log probabilities"
+        "--acoustic_batch_size", default=32, type=int, help="The batch size to calculate log probabilities"
     )
     parser.add_argument(
         "--device", default="cuda", type=str, help="The device to load the model onto to calculate log probabilities"
@@ -226,7 +226,7 @@ def main():
         help="The beta parameter or list of the betas for the beam search decoding",
     )
     parser.add_argument(
-        "--beam_batch_size", default=128, type=int, help="The batch size to be used for beam search decoding"
+        "--beam_batch_size", default=256, type=int, help="The batch size to be used for beam search decoding"
     )
     args = parser.parse_args()
 

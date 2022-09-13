@@ -1,13 +1,13 @@
-config_path='/home/harveen/vakyansh-nemo-experimentation/conf/finetuning/transducer'
-config_name='hindi_conformer_transducer_bpe_small.yaml'
-train_manifest_path=/home/harveen/vakyansh-nemo-experimentation/data/hindi/train_combined.json
-valid_manifest_path=/home/harveen/vakyansh-nemo-experimentation/data/hindi/valid_manifest.json
-tokenizer_dir=/home/harveen/vakyansh-nemo-experimentation/data/hindi/tokenizer_spe_unigram_v1024
+config_path='/root/ekstep/nemo_exp/vakyansh-nemo-experimentation/conf/finetuning/transducer/char/'
+config_name='hindi_medium_conformer_transducer_char.yaml'
+train_manifest_path=../../data/hindi/train_combined_manifest.json
+#train_manifest_path=../../data/benchmark_manifest.json
+valid_manifest_path=../../data/hindi/stt_valid_manifest.json
+#tokenizer_dir=/home/harveen/vakyansh-nemo-experimentation/data/hindi/tokenizer_spe_unigram_v1024
 tokenizer_type=char
 wandb_project_name=nemo_conformer
-wandb_run_name=conformer_small_hindi_ls_rnnt_char_restored_from_ctc
-pretrained_model='/home/harveen/vakyansh-nemo-experimentation/scripts/finetuning/nemo_experiments/Conformer-CTC-BPE-Small/2022-05-06_09-10-05/checkpoints/averaging/Conformer-CTC-BPE-Small-averaged.nemo'
-
+wandb_run_name=conformer_medium_hindi_ls_rnnt_char_restored_from_ctc
+pretrained_model='/root/ekstep/nemo_exp/trained_models/stt_hi_conformer_ctc_medium.nemo'
 
 if  [[ ${tokenizer_type}=char ]]; then
 
@@ -24,8 +24,6 @@ python ../../src/finetuning/speech_to_text_rnnt.py \
     exp_manager.wandb_logger_kwargs.name=${wandb_run_name} \
     exp_manager.wandb_logger_kwargs.project=${wandb_project_name} \
     +init_from_pretrained_model=${pretrained_model}
-
-
 fi
 
 

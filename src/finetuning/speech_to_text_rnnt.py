@@ -68,86 +68,31 @@ https://docs.nvidia.com/deeplearning/nemo/user-guide/docs/en/main/asr/configs.ht
 """
 
 
-"""
+
 import pytorch_lightning as pl
 from omegaconf import OmegaConf
 
-from nemo.collections.asr.models import EncDecRNNTModel
+from nemo.collections.asr.models import EncDecCTCModelBPE, EncDecRNNTModel
 from nemo.core.config import hydra_runner
 from nemo.utils import logging
 from nemo.utils.exp_manager import exp_manager
 
 
-@hydra_runner(config_path="experimental/contextnet_rnnt", config_name="config_rnnt")
-def main(cfg):
-    logging.info(f'Hydra config: {OmegaConf.to_yaml(cfg)}')
-
-    trainer = pl.Trainer(**cfg.trainer)
-    exp_manager(trainer, cfg.get("exp_manager", None))
-    asr_model = EncDecRNNTModel(cfg=cfg.model, trainer=trainer)
-
-    # Initialize the weights of the model from another model, if provided via config
-    asr_model.maybe_init_from_pretrained_checkpoint(cfg)
-
-    trainer.fit(asr_model)
-
-    if hasattr(cfg.model, 'test_ds') and cfg.model.test_ds.manifest_filepath is not None:
-        if asr_model.prepare_test(trainer):
-            trainer.test(asr_model)
-
-
-if __name__ == '__main__':
-    main()  # noqa pylint: disable=no-value-for-parameter
-
-
-"""
-
-
-
-
-import pytorch_lightning as pl
-from omegaconf import OmegaConf
-
-from nemo.collections.asr.models.ctc_bpe_models import EncDecCTCModelBPE, EncDecRNNTModel
-from nemo.core.config import hydra_runner
-from nemo.utils import logging
-from nemo.utils.exp_manager import exp_manager
-
-'''
-@hydra_runner(config_path="../conf/citrinet/", config_name="config_bpe")
-def main(cfg):
-    logging.info(f'Hydra config: {OmegaConf.to_yaml(cfg)}')
-
-    trainer = pl.Trainer(**cfg.trainer)
-    exp_manager(trainer, cfg.get("exp_manager", None))
-    asr_model = EncDecCTCModelBPE(cfg=cfg.model, trainer=trainer)
-
-    # Initialize the weights of the model from another model, if provided via config
-    asr_model.maybe_init_from_pretrained_checkpoint(cfg)
-
-    trainer.fit(asr_model)
-
-    if hasattr(cfg.model, 'test_ds') and cfg.model.test_ds.manifest_filepath is not None:
-        if asr_model.prepare_test(trainer):
-            trainer.test(asr_model)
-'''
-
 @hydra_runner(config_path="../conf/citrinet/", config_name="config_bpe")
 def main(cfg):
 
     logging.info(f'Hydra config: {OmegaConf.to_yaml(cfg)}')
-
     trainer = pl.Trainer(**cfg.trainer)
     exp_manager(trainer, cfg.get("exp_manager", None))
     asr_model = EncDecRNNTModel(cfg=cfg.model, trainer=trainer)
 
     # Initialize the weights of the model from another model, if provided via config
     #asr_model.maybe_init_from_pretrained_checkpoint(cfg)
+    
     print(cfg.init_from_pretrained_model)
     pretrained_model = EncDecCTCModelBPE.restore_from(cfg.init_from_pretrained_model)
     print(pl.utilities.model_summary.summarize(pretrained_model))
     asr_model.encoder.load_state_dict(pretrained_model.encoder.state_dict(), strict=True)
-    #asr_model.decoder.load_state_dict(pretrained_model.decoder.state_dict(), strict=True)
     trainer.fit(asr_model)
 
     if hasattr(cfg.model, 'test_ds') and cfg.model.test_ds.manifest_filepath is not None:
