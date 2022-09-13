@@ -97,7 +97,7 @@ class TranscriptionConfig:
 
 @hydra_runner(config_name="TranscriptionConfig", schema=TranscriptionConfig)
 def main(cfg: TranscriptionConfig) -> TranscriptionConfig:
-    logging.info(f'Hydra config: {OmegaConf.to_yaml(cfg)}')
+    logging.info(f"Hydra config: {OmegaConf.to_yaml(cfg)}")
 
     if is_dataclass(cfg):
         cfg = OmegaConf.structured(cfg)
@@ -111,20 +111,24 @@ def main(cfg: TranscriptionConfig) -> TranscriptionConfig:
     if cfg.cuda is None:
         if torch.cuda.is_available():
             device = [0]  # use 0th CUDA device
-            accelerator = 'gpu'
+            accelerator = "gpu"
         else:
             device = 1
-            accelerator = 'cpu'
+            accelerator = "cpu"
     else:
         device = [cfg.cuda]
-        accelerator = 'gpu'
+        accelerator = "gpu"
 
-    map_location = torch.device('cuda:{}'.format(device[0]) if accelerator == 'gpu' else 'cpu')
+    map_location = torch.device(
+        "cuda:{}".format(device[0]) if accelerator == "gpu" else "cpu"
+    )
 
     # setup model
     if cfg.model_path is not None:
         # restore model from .nemo file path
-        model_cfg = ASRModel.restore_from(restore_path=cfg.model_path, return_config=True)
+        model_cfg = ASRModel.restore_from(
+            restore_path=cfg.model_path, return_config=True
+        )
         classpath = model_cfg.target  # original class path
         imported_class = model_utils.import_class_by_path(classpath)  # type: ASRModel
         logging.info(f"Restoring model : {imported_class.__name__}")
@@ -145,7 +149,7 @@ def main(cfg: TranscriptionConfig) -> TranscriptionConfig:
     partial_audio = False
 
     # Setup decoding strategy
-    if hasattr(asr_model, 'change_decoding_strategy'):
+    if hasattr(asr_model, "change_decoding_strategy"):
         asr_model.change_decoding_strategy(cfg.rnnt_decoding)
 
     # get audio filenames
@@ -155,10 +159,12 @@ def main(cfg: TranscriptionConfig) -> TranscriptionConfig:
         # get filenames from manifest
         filepaths = []
         if os.stat(cfg.dataset_manifest).st_size == 0:
-            logging.error(f"The input dataset_manifest {cfg.dataset_manifest} is empty. Exiting!")
+            logging.error(
+                f"The input dataset_manifest {cfg.dataset_manifest} is empty. Exiting!"
+            )
             return None
 
-        with open(cfg.dataset_manifest, 'r') as f:
+        with open(cfg.dataset_manifest, "r") as f:
             has_two_fields = []
             for line in f:
                 item = json.loads(line)
@@ -166,13 +172,18 @@ def main(cfg: TranscriptionConfig) -> TranscriptionConfig:
                     has_two_fields.append(True)
                 else:
                     has_two_fields.append(False)
-                filepaths.append(item['audio_filepath'])
+                filepaths.append(item["audio_filepath"])
         partial_audio = all(has_two_fields)
 
     logging.info(f"\nTranscribing {len(filepaths)} files...\n")
 
     # setup AMP (optional)
-    if cfg.amp and torch.cuda.is_available() and hasattr(torch.cuda, 'amp') and hasattr(torch.cuda.amp, 'autocast'):
+    if (
+        cfg.amp
+        and torch.cuda.is_available()
+        and hasattr(torch.cuda, "amp")
+        and hasattr(torch.cuda.amp, "autocast")
+    ):
         logging.info("AMP enabled!\n")
         autocast = torch.cuda.amp.autocast
     else:
@@ -185,9 +196,13 @@ def main(cfg: TranscriptionConfig) -> TranscriptionConfig:
     if cfg.output_filename is None:
         # create default output filename
         if cfg.audio_dir is not None:
-            cfg.output_filename = os.path.dirname(os.path.join(cfg.audio_dir, '.')) + '.json'
+            cfg.output_filename = (
+                os.path.dirname(os.path.join(cfg.audio_dir, ".")) + ".json"
+            )
         else:
-            cfg.output_filename = cfg.dataset_manifest.replace('.json', f'_{model_name}.json')
+            cfg.output_filename = cfg.dataset_manifest.replace(
+                ".json", f"_{model_name}.json"
+            )
 
     # if transcripts should not be overwritten, and already exists, skip re-transcription step and return
     if not cfg.overwrite_transcripts and os.path.exists(cfg.output_filename):
@@ -214,11 +229,15 @@ def main(cfg: TranscriptionConfig) -> TranscriptionConfig:
                         "RNNT models do not support transcribe partial audio for now. Transcribing full audio."
                     )
                     transcriptions = asr_model.transcribe(
-                        paths2audio_files=filepaths, batch_size=cfg.batch_size, num_workers=cfg.num_workers,
+                        paths2audio_files=filepaths,
+                        batch_size=cfg.batch_size,
+                        num_workers=cfg.num_workers,
                     )
             else:
                 transcriptions = asr_model.transcribe(
-                    paths2audio_files=filepaths, batch_size=cfg.batch_size, num_workers=cfg.num_workers,
+                    paths2audio_files=filepaths,
+                    batch_size=cfg.batch_size,
+                    num_workers=cfg.num_workers,
                 )
 
     logging.info(f"Finished transcribing {len(filepaths)} files !")
@@ -229,21 +248,21 @@ def main(cfg: TranscriptionConfig) -> TranscriptionConfig:
     if type(transcriptions) == tuple and len(transcriptions) == 2:
         transcriptions = transcriptions[0]
     # write audio transcriptions
-    with open(cfg.output_filename, 'w', encoding='utf-8') as f:
+    with open(cfg.output_filename, "w", encoding="utf-8") as f:
         if cfg.audio_dir is not None:
             for idx, text in enumerate(transcriptions):
-                item = {'audio_filepath': filepaths[idx], 'pred_text': text}
+                item = {"audio_filepath": filepaths[idx], "pred_text": text}
                 f.write(json.dumps(item) + "\n")
         else:
-            with open(cfg.dataset_manifest, 'r') as fr:
+            with open(cfg.dataset_manifest, "r") as fr:
                 for idx, line in enumerate(fr):
                     item = json.loads(line)
-                    item['pred_text'] = transcriptions[idx]
+                    item["pred_text"] = transcriptions[idx]
                     f.write(json.dumps(item) + "\n")
 
     logging.info("Finished writing predictions !")
     return cfg
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()  # noqa pylint: disable=no-value-for-parameter

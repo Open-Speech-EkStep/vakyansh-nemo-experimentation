@@ -43,16 +43,16 @@ from nemo.utils import logging, model_utils
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        'model_fname_list',
-        metavar='N',
+        "model_fname_list",
+        metavar="N",
         type=str,
-        nargs='+',
-        help='Input .nemo files (or folders who contains them) to parse',
+        nargs="+",
+        help="Input .nemo files (or folders who contains them) to parse",
     )
     parser.add_argument(
-        '--import_fname_list',
+        "--import_fname_list",
         type=str,
-        nargs='+',
+        nargs="+",
         default=[],
         help='A list of Python file names to "from FILE import *" (Needed when some classes were defined in __main__ of a script)',
     )
@@ -65,7 +65,9 @@ def main():
     for fn in args.import_fname_list:
         logging.info(f"Importing * from {fn}")
         sys.path.insert(0, os.path.dirname(fn))
-        globals().update(importlib.import_module(os.path.splitext(os.path.basename(fn))[0]).__dict__)
+        globals().update(
+            importlib.import_module(os.path.splitext(os.path.basename(fn))[0]).__dict__
+        )
 
     device = torch.device("cpu")
 
@@ -74,10 +76,15 @@ def main():
         if not model_fname.endswith(".nemo"):
             # assume model_fname is a folder which contains a .nemo file (filter .nemo files which matches with "*-averaged.nemo")
             nemo_files = list(
-                filter(lambda fn: not fn.endswith("-averaged.nemo"), glob.glob(os.path.join(model_fname, "*.nemo")))
+                filter(
+                    lambda fn: not fn.endswith("-averaged.nemo"),
+                    glob.glob(os.path.join(model_fname, "*.nemo")),
+                )
             )
             if len(nemo_files) != 1:
-                raise RuntimeError(f"Expected only a single .nemo files but discovered {len(nemo_files)} .nemo files")
+                raise RuntimeError(
+                    f"Expected only a single .nemo files but discovered {len(nemo_files)} .nemo files"
+                )
 
             model_fname = nemo_files[0]
 
@@ -85,20 +92,24 @@ def main():
         fn, fe = os.path.splitext(model_fname)
         avg_model_fname = f"{fn}-averaged{fe}"
 
-        logging.info(f"\n===> [{model_fname_i+1} / {len(args.model_fname_list)}] Parsing folder {model_folder_path}\n")
+        logging.info(
+            f"\n===> [{model_fname_i+1} / {len(args.model_fname_list)}] Parsing folder {model_folder_path}\n"
+        )
 
         # restore model from .nemo file path
         model_cfg = ModelPT.restore_from(restore_path=model_fname, return_config=True)
         classpath = model_cfg.target  # original class path
         imported_class = model_utils.import_class_by_path(classpath)
         logging.info(f"Loading model {model_fname}")
-        nemo_model = imported_class.restore_from(restore_path=model_fname, map_location=device)
+        nemo_model = imported_class.restore_from(
+            restore_path=model_fname, map_location=device
+        )
 
         # search for all checkpoints (ignore -last.ckpt)
         checkpoint_paths = [
             os.path.join(model_folder_path, x)
             for x in os.listdir(model_folder_path)
-            if x.endswith('.ckpt') and not x.endswith('-last.ckpt')
+            if x.endswith(".ckpt") and not x.endswith("-last.ckpt")
         ]
         """ < Checkpoint Averaging Logic > """
         # load state dicts
@@ -110,8 +121,8 @@ def main():
         for ix, path in enumerate(checkpoint_paths):
             checkpoint = torch.load(path, map_location=device)
 
-            if 'state_dict' in checkpoint:
-                checkpoint = checkpoint['state_dict']
+            if "state_dict" in checkpoint:
+                checkpoint = checkpoint["state_dict"]
 
             if ix == 0:
                 # Initial state
@@ -123,7 +134,9 @@ def main():
                 for k in avg_state:
                     avg_state[k] = avg_state[k] + checkpoint[k]
 
-                logging.info(f"Updated average state dict with state from checkpoint : {path}")
+                logging.info(
+                    f"Updated average state dict with state from checkpoint : {path}"
+                )
 
         for k in avg_state:
             if str(avg_state[k].dtype).startswith("torch.int"):
@@ -140,5 +153,5 @@ def main():
         nemo_model.save_to(avg_model_fname)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

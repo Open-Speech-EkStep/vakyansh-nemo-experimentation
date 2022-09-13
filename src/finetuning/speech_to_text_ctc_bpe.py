@@ -72,7 +72,7 @@ from nemo.core.config import hydra_runner
 from nemo.utils import logging
 from nemo.utils.exp_manager import exp_manager
 
-'''
+"""
 @hydra_runner(config_path="../conf/citrinet/", config_name="config_bpe")
 def main(cfg):
     logging.info(f'Hydra config: {OmegaConf.to_yaml(cfg)}')
@@ -89,30 +89,39 @@ def main(cfg):
     if hasattr(cfg.model, 'test_ds') and cfg.model.test_ds.manifest_filepath is not None:
         if asr_model.prepare_test(trainer):
             trainer.test(asr_model)
-'''
+"""
 from nemo.collections.asr.models.ssl_models import SpeechEncDecSelfSupervisedModel
+
 
 @hydra_runner(config_path="../conf/citrinet/", config_name="config_bpe")
 def main(cfg):
-    
-    logging.info(f'Hydra config: {OmegaConf.to_yaml(cfg)}')
+
+    logging.info(f"Hydra config: {OmegaConf.to_yaml(cfg)}")
 
     trainer = pl.Trainer(**cfg.trainer)
     exp_manager(trainer, cfg.get("exp_manager", None))
     asr_model = EncDecCTCModelBPE(cfg=cfg.model, trainer=trainer)
     print("asr model loaded")
     # Initialize the weights of the model from another model, if provided via config
-    #asr_model.maybe_init_from_pretrained_checkpoint(cfg)
+    # asr_model.maybe_init_from_pretrained_checkpoint(cfg)
     print(cfg.init_from_pretrained_model)
-    pretrained_model = SpeechEncDecSelfSupervisedModel.restore_from(cfg.init_from_pretrained_model)
+    pretrained_model = SpeechEncDecSelfSupervisedModel.restore_from(
+        cfg.init_from_pretrained_model
+    )
     print(pl.utilities.model_summary.summarize(pretrained_model))
-    asr_model.encoder.load_state_dict(pretrained_model.encoder.state_dict(), strict=True)
-    #asr_model.decoder.load_state_dict(pretrained_model.decoder.state_dict(), strict=True)
+    asr_model.encoder.load_state_dict(
+        pretrained_model.encoder.state_dict(), strict=True
+    )
+    # asr_model.decoder.load_state_dict(pretrained_model.decoder.state_dict(), strict=True)
     trainer.fit(asr_model)
 
-    if hasattr(cfg.model, 'test_ds') and cfg.model.test_ds.manifest_filepath is not None:
+    if (
+        hasattr(cfg.model, "test_ds")
+        and cfg.model.test_ds.manifest_filepath is not None
+    ):
         if asr_model.prepare_test(trainer):
             trainer.test(asr_model)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

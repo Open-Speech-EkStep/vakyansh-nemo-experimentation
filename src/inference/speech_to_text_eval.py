@@ -71,12 +71,13 @@ from nemo.utils import logging
 from indicnlp.tokenize.indic_tokenize import trivial_tokenize
 from indicnlp.normalize.indic_normalize import IndicNormalizerFactory
 
-lang = 'hi'
+lang = "hi"
 normalizer = IndicNormalizerFactory().get_normalizer(lang)
+
 
 def normalize_text(sent):
     normalized = normalizer.normalize(sent)
-    processed = ' '.join(trivial_tokenize(normalized, lang))
+    processed = " ".join(trivial_tokenize(normalized, lang))
     return processed
 
 
@@ -105,7 +106,9 @@ def main(cfg: EvaluationConfig):
         )
 
     if not os.path.exists(cfg.dataset_manifest):
-        raise FileNotFoundError(f"The dataset manifest file could not be found at path : {cfg.dataset_manifest}")
+        raise FileNotFoundError(
+            f"The dataset manifest file could not be found at path : {cfg.dataset_manifest}"
+        )
 
     if not cfg.only_score_manifest:
         # Transcribe speech into an output directory
@@ -124,16 +127,16 @@ def main(cfg: EvaluationConfig):
     ground_truth_text = []
     predicted_text = []
     invalid_manifest = False
-    with open(transcription_cfg.output_filename, 'r') as f:
+    with open(transcription_cfg.output_filename, "r") as f:
         for line in f:
             data = json.loads(line)
 
-            if 'pred_text' not in data:
+            if "pred_text" not in data:
                 invalid_manifest = True
                 break
 
-            ground_truth_text.append(data['text'])
-            predicted_text.append(data['pred_text'])
+            ground_truth_text.append(data["text"])
+            predicted_text.append(data["pred_text"])
 
     # Test for invalid manifest supplied
     if invalid_manifest:
@@ -143,22 +146,30 @@ def main(cfg: EvaluationConfig):
         )
 
     # Compute the WER
-    metric_name = 'CER' if cfg.use_cer else 'WER'
+    metric_name = "CER" if cfg.use_cer else "WER"
     predicted_text = [normalize_text(txt) for txt in predicted_text]
     ground_truth_text = [normalize_text(txt) for txt in ground_truth_text]
 
-    metric_value = word_error_rate(hypotheses=predicted_text, references=ground_truth_text, use_cer=cfg.use_cer)
-    metric_value_cer = word_error_rate(hypotheses=predicted_text, references=ground_truth_text, use_cer=True)
+    metric_value = word_error_rate(
+        hypotheses=predicted_text, references=ground_truth_text, use_cer=cfg.use_cer
+    )
+    metric_value_cer = word_error_rate(
+        hypotheses=predicted_text, references=ground_truth_text, use_cer=True
+    )
 
     print(f"CER: {metric_value_cer}")
 
     if cfg.tolerance is not None:
         if metric_value > cfg.tolerance:
-            raise ValueError(f"Got {metric_name} of {metric_value}, which was higher than tolerance={cfg.tolerance}")
+            raise ValueError(
+                f"Got {metric_name} of {metric_value}, which was higher than tolerance={cfg.tolerance}"
+            )
 
-        logging.info(f'Got {metric_name} of {metric_value}. Tolerance was {cfg.tolerance}')
+        logging.info(
+            f"Got {metric_name} of {metric_value}. Tolerance was {cfg.tolerance}"
+        )
     else:
-        logging.info(f'Got {metric_name} of {metric_value}')
+        logging.info(f"Got {metric_name} of {metric_value}")
 
     # Inject the metric name and score into the config, and return the entire config
     with open_dict(cfg):
@@ -168,7 +179,5 @@ def main(cfg: EvaluationConfig):
     return cfg
 
 
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()  # noqa pylint: disable=no-value-for-parameter
