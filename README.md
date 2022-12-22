@@ -25,6 +25,11 @@ We tokenize the text using a unigram sentencepiece tokenizer with a vocab size o
 bash tokenize.sh
 ```
 ### Start finetuning 
+
+```
+cd scripts/finetuning
+```
+
 Modify `start_train_ctc.sh`
 
 ```
@@ -42,4 +47,49 @@ pretrained_model= < path to pretrained checkpoint >
 
 ```
 bash start_train_ctc.sh
+```
+
+## Inference 
+
+```
+cd scripts/inference
+```
+Modify `infer.sh`
+
+```
+model_path= < finetuned model path >
+dataset_manifest= < path to .json manifest >
+output_filename= < file name to save results >
+```
+
+### Infer with language model 
+
+First we need to train a language model to infer with it. 
+```
+cd scripts/lm
+bash install_beamsearch_decoders.sh 
+```
+Modify `train_lm.sh`
+
+```
+train_file='path to tokenizer tokenizer/text_corpus/document.txt'
+model='< finetuned checkpoint >'
+output='<output file path .bin'
+```
+```
+bash train_lm.sh
+```
+
+Once the language model is trained go to `cd scripts/inference`. Modify `infer_with_lm.sh`
+
+```
+model_path="< finstuned model path > "
+dataset_manifest='manifest .json file path'
+kenlm_model='language model path .bin'
+alpha=1.0 # asr model weight
+beta=1.0. # lm weight
+beam=128  # beam size
+```
+```
+bash infer_with_lm.sh
 ```
